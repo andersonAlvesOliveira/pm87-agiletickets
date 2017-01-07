@@ -61,19 +61,27 @@ public class EspetaculosController {
 
 	@Post("/espetaculos")
 	public void adiciona(Espetaculo espetaculo) {
-		// aqui eh onde fazemos as varias validacoes
-		// se nao tiver nome, avisa o usuario
-		// se nao tiver descricao, avisa o usuario
+		
+		boolean erro = false;
+		
 		if (Strings.isNullOrEmpty(espetaculo.getNome())) {
 			validator.add(new SimpleMessage("", "Nome do espetáculo não pode estar em branco"));
+			erro = true;
 		}
 		if (Strings.isNullOrEmpty(espetaculo.getDescricao())) {
 			validator.add(new SimpleMessage("", "Descrição do espetáculo não pode estar em branco"));
+			erro = true;
 		}
-		validator.onErrorRedirectTo(this).lista();
+		
+		if(erro){
+			validator.onErrorRedirectTo(this).lista();
+		}else{
+			agenda.cadastra(espetaculo);
+			result.redirectTo(this).lista();
+		}
 
-		agenda.cadastra(espetaculo);
-		result.redirectTo(this).lista();
+		
+		
 	}
 	
 	@Get("/espetaculo/{espetaculoId}/sessoes")
@@ -139,14 +147,10 @@ public class EspetaculosController {
 		Espetaculo espetaculo = agenda.espetaculo(espetaculoId);
 		if (espetaculo == null) {
 			validator.add(new SimpleMessage("", ""));
+			validator.onErrorUse(status()).notFound();
 		}
-		validator.onErrorUse(status()).notFound();
+		
 		return espetaculo;
 	}
 
-	// metodo antigo. aqui soh por backup
-	private Estabelecimento criaEstabelecimento(Long id) {
-		return estabelecimentos.todos().get(0);
-	}
-	
 }
